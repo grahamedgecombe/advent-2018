@@ -19,4 +19,17 @@ public final class Day2Test {
 			"ababab"
 		)));
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals("fgij", Day2.getCorrectBoxes(Arrays.asList(
+			"abcde",
+			"fghij",
+			"klmno",
+			"pqrst",
+			"fguij",
+			"axcye",
+			"wvxyz"
+		)));
+	}
 }
