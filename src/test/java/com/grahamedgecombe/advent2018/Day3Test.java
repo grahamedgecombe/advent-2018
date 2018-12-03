@@ -15,4 +15,13 @@ public final class Day3Test {
 			"#3 @ 5,5: 2x2"
 		))));
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals(3, Day3.getNonOverlappingClaimId(Day3.parseClaims(Arrays.asList(
+			"#1 @ 1,3: 4x4",
+			"#2 @ 3,1: 4x4",
+			"#3 @ 5,5: 2x2"
+		))));
+	}
 }

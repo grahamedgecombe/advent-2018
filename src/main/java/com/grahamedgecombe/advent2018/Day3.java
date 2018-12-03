@@ -12,6 +12,7 @@ public final class Day3 {
 	public static void main(String[] args) throws IOException {
 		List<Claim> claims = parseClaims(AdventUtils.readLines("day3.txt"));
 		System.out.println(getOverlappingClaims(claims));
+		System.out.println(getNonOverlappingClaimId(claims));
 	}
 
 	public static final class Claim {
@@ -23,6 +24,13 @@ public final class Day3 {
 			this.y = y;
 			this.width = width;
 			this.height = height;
+		}
+
+		public boolean intersects(Claim other) {
+			return x + width > other.x
+				&& x < other.x + other.width
+				&& y + height > other.y
+				&& y < other.y + other.height;
 		}
 	}
 
@@ -59,5 +67,30 @@ public final class Day3 {
 		}
 
 		return overlappingClaims;
+	}
+
+	public static int getNonOverlappingClaimId(List<Claim> claims) {
+		for (int i = 0; i < claims.size(); i++) {
+			Claim claim1 = claims.get(i);
+
+			boolean intersects = false;
+			for (int j = 0; j < claims.size(); j++) {
+				if (i == j) {
+					continue;
+				}
+
+				Claim claim2 = claims.get(j);
+				if (claim1.intersects(claim2)) {
+					intersects = true;
+					break;
+				}
+			}
+
+			if (!intersects) {
+				return claim1.id;
+			}
+		}
+
+		throw new IllegalArgumentException();
 	}
 }
