@@ -6,6 +6,7 @@ public final class Day5 {
 	public static void main(String[] args) throws IOException {
 		String polymer = AdventUtils.readString("day5.txt");
 		System.out.println(react(polymer));
+		System.out.println(bestReact(polymer));
 	}
 
 	private static char swapCase(char c) {
@@ -30,5 +31,23 @@ public final class Day5 {
 			}
 		}
 		return str.length();
+	}
+
+	private static String removeChars(String str, char ch) {
+		StringBuilder builder = new StringBuilder();
+		for (char c : str.toCharArray()) {
+			if (Character.toLowerCase(c) != ch) {
+				builder.append(c);
+			}
+		}
+		return builder.toString();
+	}
+
+	public static int bestReact(String str) {
+		int len = Integer.MAX_VALUE;
+		for (char c = 'a'; c <= 'z'; c++) {
+			len = Math.min(len, react(removeChars(str, c)));
+		}
+		return len;
 	}
 }

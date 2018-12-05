@@ -13,4 +13,9 @@ public final class Day5Test {
 		assertEquals(6, Day5.react("aabAAB"));
 		assertEquals(10, Day5.react("dabAcCaCBAcCcaDA"));
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals(4, Day5.bestReact("dabAcCaCBAcCcaDA"));
+	}
 }
