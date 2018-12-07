@@ -9,7 +9,9 @@ import java.util.List;
 public final class Day6 {
 	public static void main(String[] args) throws IOException {
 		Point[] points = parsePoints(AdventUtils.readLines("day6.txt"));
-		System.out.println(getMaxArea(points));
+		Result result = getAreas(points, 10000);
+		System.out.println(result.getMaxArea());
+		System.out.println(result.getSafeArea());
 	}
 
 	public static Point[] parsePoints(List<String> lines) {
@@ -56,7 +58,24 @@ public final class Day6 {
 		}
 	}
 
-	public static int getMaxArea(Point[] points) {
+	public static final class Result {
+		private final int maxArea, safeArea;
+
+		public Result(int maxArea, int safeArea) {
+			this.maxArea = maxArea;
+			this.safeArea = safeArea;
+		}
+
+		public int getMaxArea() {
+			return maxArea;
+		}
+
+		public int getSafeArea() {
+			return safeArea;
+		}
+	}
+
+	public static Result getAreas(Point[] points, int totalThreshold) {
 		IntSummaryStatistics xStats = Arrays.stream(points).mapToInt(Point::getX).summaryStatistics();
 		IntSummaryStatistics yStats = Arrays.stream(points).mapToInt(Point::getY).summaryStatistics();
 
@@ -66,10 +85,19 @@ public final class Day6 {
 		int maxX = xStats.getMax();
 		int maxY = yStats.getMax();
 
+		int safeArea = 0;
+
 		for (int x = minX; x <= maxX; x++) {
 			for (int y = minY; y <= maxY; y++) {
 				final int fX = x;
 				final int fY = y;
+
+				int totalDistance = Arrays.stream(points)
+					.mapToInt(p -> p.getDistance(fX, fY))
+					.sum();
+				if (totalDistance < totalThreshold) {
+					safeArea++;
+				}
 
 				Point[] nearestTwo = Arrays.stream(points)
 					.sorted(Comparator.comparingInt(p -> p.getDistance(fX, fY)))
@@ -91,10 +119,12 @@ public final class Day6 {
 			}
 		}
 
-		return Arrays.stream(points)
+		int maxArea = Arrays.stream(points)
 			.filter(p -> !p.infinite)
 			.mapToInt(Point::getArea)
 			.max()
 			.getAsInt();
+
+		return new Result(maxArea, safeArea);
 	}
 }
