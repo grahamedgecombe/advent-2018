@@ -9,4 +9,9 @@ public final class Day8Test {
 	public void testPart1() {
 		assertEquals(138, Day8.parseTree("2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2").sumMetadata());
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals(66, Day8.parseTree("2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2").value());
+	}
 }

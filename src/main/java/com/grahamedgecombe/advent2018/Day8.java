@@ -12,6 +12,7 @@ public final class Day8 {
 	public static void main(String[] args) throws IOException {
 		Node root = parseTree(AdventUtils.readString("day8.txt"));
 		System.out.println(root.sumMetadata());
+		System.out.println(root.value());
 	}
 
 	public static final class Node {
@@ -21,6 +22,17 @@ public final class Day8 {
 		public int sumMetadata() {
 			return metadata.stream().mapToInt(i -> i).sum() +
 				children.stream().mapToInt(Node::sumMetadata).sum();
+		}
+
+		public int value() {
+			if (children.isEmpty()) {
+				return metadata.stream().mapToInt(i -> i).sum();
+			}
+			return metadata.stream()
+				.mapToInt(i -> i - 1)
+				.filter(i -> i >= 0 && i < children.size())
+				.map(i -> children.get(i).value())
+				.sum();
 		}
 	}
 
