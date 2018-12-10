@@ -12,7 +12,27 @@ public final class Day10 {
 
 	public static void main(String[] args) throws IOException {
 		Point[] points = parsePoints(AdventUtils.readLines("day10.txt"));
-		System.out.print(getMessage(points));
+		Result result = getMessage(points);
+		System.out.print(result.getMessage());
+		System.out.println(result.getTime());
+	}
+
+	public static final class Result {
+		private final String message;
+		private final int time;
+
+		public Result(String message, int time) {
+			this.message = message;
+			this.time = time;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public int getTime() {
+			return time;
+		}
 	}
 
 	public static final class Vector {
@@ -92,15 +112,15 @@ public final class Day10 {
 		return str.toString();
 	}
 
-	public static String getMessage(Point[] points) {
-		for (;;) {
+	public static Result getMessage(Point[] points) {
+		for (int time = 0;; time++) {
 			long area = getBoundingBoxArea(points);
 
 			Point[] next = Arrays.stream(points).map(Point::tick).toArray(Point[]::new);
 			long nextArea = getBoundingBoxArea(next);
 
 			if (nextArea > area) {
-				return render(points);
+				return new Result(render(points), time);
 			}
 
 			points = next;
