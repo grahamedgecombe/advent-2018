@@ -8,6 +8,7 @@ public final class Day11 {
 	public static void main(String[] args) throws IOException {
 		int serial = Integer.parseInt(AdventUtils.readString("day11.txt"));
 		System.out.println(getMostPowerful3x3Square(serial));
+		System.out.println(getMostPowerfulSquare(serial));
 	}
 
 	public static int getPower(int x, int y, int serial) {
@@ -33,6 +34,45 @@ public final class Day11 {
 				if (power > maxPower) {
 					square = x + "," + y;
 					maxPower = power;
+				}
+			}
+		}
+
+		return square;
+	}
+
+	public static String getMostPowerfulSquare(int serial) {
+		int[][] powers = new int[GRID_SIZE][GRID_SIZE];
+
+		String square = null;
+		int maxPower = Integer.MIN_VALUE;
+
+		for (int x = 0; x < GRID_SIZE; x++) {
+			for (int y = 0; y < GRID_SIZE; y++) {
+				int power = powers[x][y] = getPower(x, y, serial);
+				if (power > maxPower) {
+					square = x + "," + y + ",1";
+					maxPower = power;
+				}
+			}
+		}
+
+		for (int size = 2; size <= GRID_SIZE; size++) {
+			for (int x = 0; x <= GRID_SIZE - size; x++) {
+				for (int y = 0; y <= GRID_SIZE - size; y++) {
+					int power = powers[x][y];
+					for (int x0 = x; x0 < x + size; x0++) {
+						power += getPower(x0, y + size - 1, serial);
+					}
+					for (int y0 = y; y0 < y + size - 1; y0++) {
+						power += getPower(x + size - 1, y0, serial);
+					}
+					powers[x][y] = power;
+
+					if (power > maxPower) {
+						square = x + "," + y + "," + size;
+						maxPower = power;
+					}
 				}
 			}
 		}

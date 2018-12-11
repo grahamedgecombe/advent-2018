@@ -15,4 +15,10 @@ public final class Day11Test {
 		assertEquals("33,45", Day11.getMostPowerful3x3Square(18));
 		assertEquals("21,61", Day11.getMostPowerful3x3Square(42));
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals("90,269,16", Day11.getMostPowerfulSquare(18));
+		assertEquals("232,251,12", Day11.getMostPowerfulSquare(42));
+	}
 }
