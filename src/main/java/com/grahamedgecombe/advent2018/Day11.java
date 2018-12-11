@@ -49,25 +49,33 @@ public final class Day11 {
 
 		for (int x = 0; x < GRID_SIZE; x++) {
 			for (int y = 0; y < GRID_SIZE; y++) {
-				int power = powers[x][y] = getPower(x, y, serial);
-				if (power > maxPower) {
-					square = x + "," + y + ",1";
-					maxPower = power;
+				int power = getPower(x, y, serial);
+				if (x > 0) {
+					power += powers[x - 1][y];
 				}
+				if (y > 0) {
+					power += powers[x][y - 1];
+				}
+				if (x > 0 && y > 0) {
+					power -= powers[x - 1][y - 1];
+				}
+				powers[x][y] = power;
 			}
 		}
 
-		for (int size = 2; size <= GRID_SIZE; size++) {
+		for (int size = 1; size <= GRID_SIZE; size++) {
 			for (int x = 0; x <= GRID_SIZE - size; x++) {
 				for (int y = 0; y <= GRID_SIZE - size; y++) {
-					int power = powers[x][y];
-					for (int x0 = x; x0 < x + size; x0++) {
-						power += getPower(x0, y + size - 1, serial);
+					int power = powers[x + size - 1][y + size - 1];
+					if (x > 0 && y > 0) {
+						power += powers[x - 1][y - 1];
 					}
-					for (int y0 = y; y0 < y + size - 1; y0++) {
-						power += getPower(x + size - 1, y0, serial);
+					if (y > 0) {
+						power -= powers[x + size - 1][y - 1];
 					}
-					powers[x][y] = power;
+					if (x > 0) {
+						power -= powers[x - 1][y + size - 1];
+					}
 
 					if (power > maxPower) {
 						square = x + "," + y + "," + size;
