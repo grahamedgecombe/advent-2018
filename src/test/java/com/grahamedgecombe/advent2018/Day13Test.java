@@ -16,6 +16,19 @@ public final class Day13Test {
 			"| | |  | v  |",
 			"\\-+-/  \\-+--/",
 			"  \\------/   "
-		)).getCrashLocation());
+		)).getFirstCrashLocation());
+	}
+
+	@Test
+	public void testPart2() {
+		assertEquals("6,4", Day13.Grid.parse(Arrays.asList(
+			"/>-<\\  ",
+			"|   |  ",
+			"| /<+-\\",
+			"| | | v",
+			"\\>+</ |",
+			"  |   ^",
+			"  \\<->/"
+		)).getLastCartLocation());
 	}
 }
