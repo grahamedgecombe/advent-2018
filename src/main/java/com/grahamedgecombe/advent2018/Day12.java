@@ -15,15 +15,16 @@ public final class Day12 {
 	public static void main(String[] args) throws IOException {
 		Pots pots = Pots.parse(AdventUtils.readLines("day12.txt"));
 		System.out.println(pots.getSum(20));
+		System.out.println(pots.getSum(50_000_000_000L));
 	}
 
 	private static final class State {
 		private static final State EMPTY = new State(0, "");
 
-		private final int zeroIndex;
+		private final long zeroIndex;
 		private final String chars;
 
-		private State(int zeroIndex, String chars) {
+		private State(long zeroIndex, String chars) {
 			this.zeroIndex = zeroIndex;
 			this.chars = chars;
 		}
@@ -83,20 +84,39 @@ public final class Day12 {
 			int lastIndex = next.lastIndexOf("#");
 
 			if (firstIndex != -1) {
-				int zeroIndex = current.zeroIndex + ((RULE_LENGTH - 1) / 2) - firstIndex;
+				long zeroIndex = current.zeroIndex + ((RULE_LENGTH - 1) / 2) - firstIndex;
 				return new State(zeroIndex, next.substring(firstIndex, lastIndex + 1));
 			} else {
 				return State.EMPTY;
 			}
 		}
 
-		public int getSum(int n) {
+		public long getSum(long n) {
+			Map<String, Long> history = new HashMap<>();
+			Map<String, Long> zeroIndexes = new HashMap<>();
+
 			State state = new State(0, initialState);
-			for (int i = 0; i < n; i++) {
+			for (long i = 0; i < n; i++) {
 				state = generate(state);
+
+				if (history.containsKey(state.chars)) {
+					long cycleLength = i - history.get(state.chars);
+					long zeroIndexDelta = state.zeroIndex - zeroIndexes.get(state.chars);
+
+					long remaining = n - i - 1;
+
+					long cycles = remaining / cycleLength;
+					long zeroIndex = state.zeroIndex + cycles * zeroIndexDelta;
+
+					state = new State(zeroIndex, state.chars);
+					i = n - (remaining % cycleLength);
+				} else {
+					history.put(state.chars, i);
+					zeroIndexes.put(state.chars, state.zeroIndex);
+				}
 			}
 
-			int sum = 0;
+			long sum = 0;
 			for (int i = 0; i < state.chars.length(); i++) {
 				if (state.chars.charAt(i) == '#') {
 					sum += i - state.zeroIndex;
