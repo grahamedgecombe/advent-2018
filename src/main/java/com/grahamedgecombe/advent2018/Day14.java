@@ -7,18 +7,49 @@ import java.util.List;
 
 public final class Day14 {
 	public static void main(String[] args) throws IOException {
-		int count = Integer.parseInt(AdventUtils.readString("day14.txt"));
-		System.out.println(getScores(count));
+		String in = AdventUtils.readString("day14.txt");
+		System.out.println(getScores(in));
+		System.out.println(getRecipes(in));
 	}
 
-	public static String getScores(int count) {
+	public static String getScores(String in) {
+		return run(in, true);
+	}
+
+	public static String getRecipes(String in) {
+		return run(in, false);
+	}
+
+	private static String run(String in, boolean part1) {
+		int count = Integer.parseInt(in);
+
+		List<Integer> sequence = new ArrayList<>();
+		for (char c : in.toCharArray()) {
+			sequence.add(c - '0');
+		}
+		int nextIndexOfAt = 1;
+
 		List<Integer> scores = new ArrayList<>();
 		scores.add(3);
 		scores.add(7);
 
 		int firstIndex = 0, secondIndex = 1;
 
-		while (scores.size() < (count + 10)) {
+		for (;;) {
+			if (part1) {
+				if (scores.size() >= (count + 10)) {
+					break;
+				}
+			} else {
+				if (scores.size() >= nextIndexOfAt) {
+					int index = Collections.indexOfSubList(scores, sequence);
+					if (index != -1) {
+						return Integer.toString(index);
+					}
+					nextIndexOfAt <<= 1;
+				}
+			}
+
 			int totalScore = scores.get(firstIndex) + scores.get(secondIndex);
 
 			int oldSize = scores.size();
