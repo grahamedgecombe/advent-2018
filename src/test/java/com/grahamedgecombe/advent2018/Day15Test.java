@@ -61,4 +61,59 @@ public final class Day15Test {
 			"#########"
 		)).getOutcome());
 	}
+
+	@Test
+	public void testPart2() {
+		assertEquals(4988, Day15.Map.parse(Arrays.asList(
+			"#######",
+			"#.G...#",
+			"#...EG#",
+			"#.#.#G#",
+			"#..G#E#",
+			"#.....#",
+			"#######"
+		)).getMinPowerOutcome());
+
+		assertEquals(31284, Day15.Map.parse(Arrays.asList(
+			"#######",
+			"#E..EG#",
+			"#.#G.E#",
+			"#E.##E#",
+			"#G..#.#",
+			"#..E#.#",
+			"#######"
+		)).getMinPowerOutcome());
+
+		assertEquals(3478, Day15.Map.parse(Arrays.asList(
+			"#######",
+			"#E.G#.#",
+			"#.#G..#",
+			"#G.#.G#",
+			"#G..#.#",
+			"#...E.#",
+			"#######"
+		)).getMinPowerOutcome());
+
+		assertEquals(6474, Day15.Map.parse(Arrays.asList(
+			"#######",
+			"#.E...#",
+			"#.#..G#",
+			"#.###.#",
+			"#E#G#G#",
+			"#...#G#",
+			"#######"
+		)).getMinPowerOutcome());
+
+		assertEquals(1140, Day15.Map.parse(Arrays.asList(
+			"#########",
+			"#G......#",
+			"#.E.#...#",
+			"#..##..G#",
+			"#...##..#",
+			"#...#...#",
+			"#.G...G.#",
+			"#.....G.#",
+			"#########"
+		)).getMinPowerOutcome());
+	}
 }
