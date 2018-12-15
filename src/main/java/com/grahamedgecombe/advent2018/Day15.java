@@ -348,6 +348,8 @@ public final class Day15 {
 				}
 				if (stripComma) {
 					buf.delete(buf.length() - 2, buf.length());
+				} else {
+					buf.delete(buf.length() - 1, buf.length());
 				}
 				buf.append("\n");
 			}
