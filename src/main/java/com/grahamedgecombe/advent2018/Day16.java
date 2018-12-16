@@ -3,17 +3,27 @@ package com.grahamedgecombe.advent2018;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 public final class Day16 {
 	private static final Pattern REGS_PATTERN = Pattern.compile("^(?:Before|After): +\\[([0-9]+), ([0-9]+), ([0-9]+), ([0-9]+)]$");
 
 	public static void main(String[] args) throws IOException {
 		String[] parts = AdventUtils.readString("day16.txt").split("\n\n\n\n");
+
 		List<Sample> samples = Sample.parse(parts[0]);
 		System.out.println(countMatchingSamples(samples));
+
+		List<Instruction> instructions = Instruction.parseProgram(parts[1]);
+		System.out.println(evaluate(samples, instructions));
 	}
 
 	private static int add(int a, int b) {
@@ -93,6 +103,10 @@ public final class Day16 {
 	}
 
 	private static final class Instruction {
+		public static List<Instruction> parseProgram(String in) {
+			return Arrays.stream(in.split("\n")).map(Instruction::parse).collect(Collectors.toList());
+		}
+
 		public static Instruction parse(String line) {
 			int[] ints = Arrays.stream(line.split(" ")).mapToInt(Integer::parseInt).toArray();
 			return new Instruction(ints[0], ints[1], ints[2], ints[3]);
@@ -169,5 +183,52 @@ public final class Day16 {
 		}
 
 		return count;
+	}
+
+	private static SetMultimap<Integer, Opcode> getPossibleOpcodes(List<Sample> samples) {
+		SetMultimap<Integer, Opcode> possibleOpcodes = HashMultimap.create();
+
+		for (Sample sample : samples) {
+			for (Opcode opcode : Opcode.values()) {
+				int[] regs = Arrays.copyOf(sample.before, sample.before.length);
+				opcode.evaluate(regs, sample.instruction.a, sample.instruction.b, sample.instruction.c);
+				if (Arrays.equals(regs, sample.after)) {
+					possibleOpcodes.put(sample.instruction.opcode, opcode);
+				}
+			}
+		}
+
+		return possibleOpcodes;
+	}
+
+	private static Opcode[] createOpcodeMap(SetMultimap<Integer, Opcode> possibleOpcodes) {
+		Opcode[] map = new Opcode[16];
+
+		List<Integer> unknownIds = new ArrayList<>(possibleOpcodes.keySet());
+		while (!unknownIds.isEmpty()) {
+			for (Iterator<Integer> it = unknownIds.iterator(); it.hasNext();) {
+				int id = it.next();
+
+				Set<Opcode> opcodes = possibleOpcodes.get(id);
+				if (opcodes.size() != 1) {
+					continue;
+				}
+
+				Opcode opcode = opcodes.iterator().next();
+				map[id] = opcode;
+
+				possibleOpcodes.entries().removeIf(entry -> entry.getValue() == opcode);
+				it.remove();
+			}
+		}
+
+		return map;
+	}
+
+	public static int evaluate(List<Sample> samples, List<Instruction> instructions) {
+		Opcode[] opcodes = createOpcodeMap(getPossibleOpcodes(samples));
+		int[] regs = new int[4];
+		instructions.forEach(insn -> opcodes[insn.opcode].evaluate(regs, insn.a, insn.b, insn.c));
+		return regs[0];
 	}
 }
