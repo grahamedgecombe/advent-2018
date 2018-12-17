@@ -15,6 +15,7 @@ public final class Day17 {
 		Grid grid = Grid.parse(AdventUtils.readLines("day17.txt"));
 		grid.flow();
 		System.out.println(grid.getWaterTiles());
+		System.out.println(grid.getStillWaterTiles());
 	}
 
 	private static final class Vein {
@@ -118,6 +119,18 @@ public final class Day17 {
 			for (int y = minY; y < height; y++) {
 				for (int x = 0; x < width; x++) {
 					if (tiles[y][x] == '|' || tiles[y][x] == '~') {
+						count++;
+					}
+				}
+			}
+			return count;
+		}
+
+		public int getStillWaterTiles() {
+			int count = 0;
+			for (int y = minY; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					if (tiles[y][x] == '~') {
 						count++;
 					}
 				}
