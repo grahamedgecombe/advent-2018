@@ -1,12 +1,41 @@
 package com.grahamedgecombe.advent2018;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Day18 {
 	public static void main(String[] args) throws IOException {
 		Grid grid = Grid.parse(AdventUtils.readLines("day18.txt"));
 		System.out.println(grid.getResourceValue(10));
+		System.out.println(grid.getResourceValue(1000000000));
+	}
+
+	private static final class State {
+		private final char[][] tiles;
+
+		public State(char[][] tiles) {
+			this.tiles = tiles;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			State state = (State) o;
+			return Arrays.deepEquals(tiles, state.tiles);
+		}
+
+		@Override
+		public int hashCode() {
+			return Arrays.deepHashCode(tiles);
+		}
 	}
 
 	public static final class Grid {
@@ -27,18 +56,31 @@ public final class Day18 {
 		}
 
 		private final int width, height;
-		private char[][] tiles, nextTiles;
+		private final char[][] tiles;
 
 		public Grid(int width, int height, char[][] tiles) {
 			this.width = width;
 			this.height = height;
 			this.tiles = tiles;
-			this.nextTiles = new char[height][width];
 		}
 
-		public int getResourceValue(int minutes) {
-			for (int i = 0; i < minutes; i++) {
-				tick();
+		public int getResourceValue(long minutes) {
+			Map<State, Long> history = new HashMap<>();
+
+			char[][] tiles = this.tiles;
+			history.put(new State(tiles), 0L);
+
+			for (long i = 1; i <= minutes; i++) {
+				tiles = tick(tiles);
+
+				State state = new State(tiles);
+				if (history.containsKey(state)) {
+					long cycleLength = i - history.get(state);
+					long remaining = minutes - i;
+					i = minutes - (remaining % cycleLength);
+				} else {
+					history.put(state, i);
+				}
 			}
 
 			int trees = 0, lumberyards = 0;
@@ -55,7 +97,9 @@ public final class Day18 {
 			return trees * lumberyards;
 		}
 
-		private void tick() {
+		private char[][] tick(char[][] tiles) {
+			char[][] nextTiles = new char[height][width];
+
 			for (int y = 0; y < height; y++) {
 				for (int x = 0; x < width; x++) {
 					int trees = 0, lumberyards = 0;
@@ -95,9 +139,7 @@ public final class Day18 {
 				}
 			}
 
-			char[][] temp = tiles;
-			tiles = nextTiles;
-			nextTiles = temp;
+			return nextTiles;
 		}
 
 		@Override
