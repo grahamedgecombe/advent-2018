@@ -12,6 +12,7 @@ public final class Day19 {
 	public static void main(String[] args) throws IOException {
 		Program program = Program.parse(AdventUtils.readLines("day19.txt"));
 		System.out.println(program.evaluate());
+		System.out.println(program.evaluate(new int[] { 1, 0, 0, 0, 0, 0 }));
 	}
 
 	private static int add(int a, int b) {
@@ -116,7 +117,10 @@ public final class Day19 {
 		}
 
 		public int evaluate() {
-			int[] regs = new int[6];
+			return evaluate(new int[6]);
+		}
+
+		public int evaluate(int[] regs) {
 			for (;;) {
 				int index = regs[ip];
 				if (index < 0 || index >= instructions.size()) {
@@ -126,6 +130,13 @@ public final class Day19 {
 				Instruction insn = instructions.get(index);
 				insn.opcode.evaluate(regs, insn.a, insn.b, insn.c);
 				regs[ip]++;
+
+				if (regs[ip] == 2) {
+					if ((regs[4] % regs[5]) == 0) {
+						regs[0] += regs[5];
+					}
+					regs[ip] = 12;
+				}
 			}
 		}
 	}
