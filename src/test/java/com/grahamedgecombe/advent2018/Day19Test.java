@@ -2,11 +2,13 @@ package com.grahamedgecombe.advent2018;
 
 import java.util.Arrays;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public final class Day19Test {
+	@Ignore
 	@Test
 	public void testPart1() {
 		assertEquals(7, Day19.Program.parse(Arrays.asList(
