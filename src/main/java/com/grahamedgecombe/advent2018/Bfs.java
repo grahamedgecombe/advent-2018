@@ -28,16 +28,15 @@ public final class Bfs {
 			if (current.isGoal()) {
 				List<T> path = new ArrayList<>();
 
+				T node = current;
 				do {
-					path.add(current);
-				} while ((current = parents.get(current)) != null);
+					path.add(node);
+				} while ((node = parents.get(node)) != null);
 
 				Collections.reverse(path);
 				paths.add(path);
 
-				if (all) {
-					continue;
-				} else {
+				if (!all) {
 					break;
 				}
 			}
