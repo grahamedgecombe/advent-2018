@@ -15,6 +15,7 @@ public final class Day20 {
 	public static void main(String[] args) throws IOException {
 		Graph graph = new Graph(AdventUtils.readString("day20.txt"));
 		System.out.println(graph.getFurthestRoom());
+		System.out.println(graph.getPaths());
 	}
 
 	public static final class Graph {
@@ -92,6 +93,14 @@ public final class Day20 {
 				.mapToInt(List::size)
 				.max()
 				.getAsInt() - 1;
+		}
+
+		public long getPaths() {
+			return Bfs.searchAll(origin)
+				.stream()
+				.mapToInt(path -> path.size() - 1)
+				.filter(doors -> doors >= 1000)
+				.count();
 		}
 
 		private char prev() {
