@@ -76,7 +76,7 @@ public final class Day22 {
 	}
 
 	public static final class Grid {
-		private final class State extends Dijkstra.Node<State> {
+		private final class State extends AStar.Node<State> {
 			private final Position position;
 			private final Tool tool;
 
@@ -118,6 +118,11 @@ public final class Day22 {
 				}
 
 				return neighbours;
+			}
+
+			@Override
+			public int getCost() {
+				return Math.abs(targetX - position.x) + Math.abs(targetY - position.y);
 			}
 
 			@Override
@@ -191,7 +196,7 @@ public final class Day22 {
 		}
 
 		public int getMinutes() {
-			List<Grid.State> path = Dijkstra.search(new State(new Position(0, 0), Tool.TORCH)).orElseThrow();
+			List<Grid.State> path = AStar.search(new State(new Position(0, 0), Tool.TORCH)).orElseThrow();
 
 			int minutes = 0;
 			for (int i = 0; i < path.size() - 1; i++) {
