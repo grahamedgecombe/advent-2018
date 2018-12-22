@@ -36,4 +36,10 @@ public final class Day22Test {
 
 		assertEquals(114, grid.sumRisk());
 	}
+
+	@Test
+	public void testPart2() {
+		Day22.Grid grid = new Day22.Grid(510, 10, 10);
+		assertEquals(45, grid.getMinutes());
+	}
 }
