@@ -2,7 +2,9 @@ package com.grahamedgecombe.advent2018;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,7 +13,8 @@ public final class Day21 {
 
 	public static void main(String[] args) throws IOException {
 		Program program = Program.parse(AdventUtils.readLines("day21.txt"));
-		System.out.println(program.getR0());
+		System.out.println(program.getMinInstructionsR0());
+		System.out.println(program.getMaxInstructionsR0());
 	}
 
 	private static int add(int a, int b) {
@@ -115,7 +118,18 @@ public final class Day21 {
 			this.instructions = instructions;
 		}
 
-		public int getR0() {
+		public int getMinInstructionsR0() {
+			return getR0(true);
+		}
+
+		public int getMaxInstructionsR0() {
+			return getR0(false);
+		}
+
+		private int getR0(boolean part1) {
+			Set<Integer> seen = new HashSet<>();
+			int lastSeen = 0;
+
 			int[] regs = new int[6];
 			for (;;) {
 				int index = regs[ip];
@@ -127,8 +141,16 @@ public final class Day21 {
 				insn.opcode.evaluate(regs, insn.a, insn.b, insn.c);
 				regs[ip]++;
 
-				if (regs[ip] == 28) {
-					return regs[5];
+				if (regs[ip] == 17) {
+					regs[2] = ((regs[3] - 256) / 256) + 1;
+					regs[ip] = 26;
+				} else if (regs[ip] == 28) {
+					if (part1) {
+						return regs[5];
+					} else if (!seen.add(regs[5])) {
+						return lastSeen;
+					}
+					lastSeen = regs[5];
 				}
 			}
 		}
