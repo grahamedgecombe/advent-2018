@@ -1,6 +1,10 @@
 package com.grahamedgecombe.advent2018;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -13,6 +17,7 @@ public final class Day23 {
 	public static void main(String[] args) throws IOException {
 		List<Nanobot> nanobots = Nanobot.parse(AdventUtils.readLines("day23.txt"));
 		System.out.println(getNanobotsInRange(nanobots));
+		System.out.println(getDistance(nanobots));
 	}
 
 	public static final class Position {
@@ -68,5 +73,37 @@ public final class Day23 {
 	public static long getNanobotsInRange(List<Nanobot> nanobots) {
 		Nanobot nanobot = nanobots.stream().max(Comparator.comparingInt(Nanobot::getRadius)).orElseThrow();
 		return nanobots.stream().filter(nanobot::contains).count();
+	}
+
+	public static String getDistance(List<Nanobot> nanobots) throws IOException {
+		Process process = Runtime.getRuntime().exec(new String[] { "z3", "/dev/stdin" });
+
+		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+			writer.write("(declare-const x Int)\n");
+			writer.write("(declare-const y Int)\n");
+			writer.write("(declare-const z Int)\n");
+
+			writer.write("(define-fun abs ((x Int)) Int (if (> x 0) x (- x)))\n");
+			writer.write("(define-fun dist ((x1 Int) (y1 Int) (z1 Int) (x2 Int) (y2 Int) (z2 Int)) Int (+ (abs (- x1 x2)) (abs (- y1 y2)) (abs (- z1 z2))))\n");
+
+			writer.write("(define-fun count ((x Int) (y Int) (z Int)) Int (+\n");
+			for (Nanobot nanobot : nanobots) {
+				writer.write(String.format("  (if (<= (dist x y z %d %d %d) %d) 1 0)\n", nanobot.position.x, nanobot.position.y, nanobot.position.z, nanobot.radius));
+			}
+			writer.write("))\n");
+
+			writer.write("(maximize (count x y z))\n");
+			writer.write("(minimize (dist x y z 0 0 0))\n");
+			writer.write("(check-sat)\n");
+			writer.write("(eval (dist x y z 0 0 0))\n");
+		}
+
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+			String sat = reader.readLine();
+			if (!sat.equals("sat")) {
+				throw new IllegalArgumentException();
+			}
+			return reader.readLine();
+		}
 	}
 }
