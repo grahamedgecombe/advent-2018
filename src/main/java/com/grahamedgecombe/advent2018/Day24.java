@@ -19,7 +19,8 @@ public final class Day24 {
 
 	public static void main(String[] args) throws IOException {
 		Simulator simulator = Simulator.parse(AdventUtils.readLines("day24.txt"));
-		System.out.println(simulator.fight());
+		System.out.println(simulator.getWinningUnits());
+		System.out.println(simulator.getWinningUnitsAfterMinBoost());
 	}
 
 	public static final class Simulator {
@@ -34,7 +35,7 @@ public final class Day24 {
 				} else if (line.equals("Infection:")) {
 					immune = false;
 				} else if (!line.isEmpty()) {
-					Group group = Group.parse(line);
+					Group group = Group.parse(line, immune);
 					if (immune) {
 						immuneGroups.add(group);
 					} else {
@@ -53,25 +54,25 @@ public final class Day24 {
 			this.infectionGroups = infectionGroups;
 		}
 
-		private void selectTargets(List<Group> attackers, List<Group> defenders) {
+		private void selectTargets(List<Group> attackers, List<Group> defenders, int boost) {
 			attackers.forEach(attacker -> attacker.target = null);
 			defenders.forEach(defender -> defender.targetedBy = null);
 
 			attackers.stream()
 				.filter(Group::isAlive)
-				.sorted(Comparator.comparingInt(Group::getEffectivePower)
+				.sorted(Comparator.comparingInt((Group attacker) -> attacker.getEffectivePower(boost))
 					.thenComparingInt(Group::getInitiative)
 					.reversed())
-				.forEachOrdered(attacker -> selectTarget(attacker, defenders));
+				.forEachOrdered(attacker -> selectTarget(attacker, defenders, boost));
 		}
 
-		private void selectTarget(Group attacker, List<Group> defenders) {
+		private void selectTarget(Group attacker, List<Group> defenders, int boost) {
 			defenders.stream()
 				.filter(Group::isAlive)
 				.filter(defender -> defender.targetedBy == null)
-				.filter(defender -> getDamage(attacker, defender) != 0)
-				.max(Comparator.comparingInt((Group defender) -> getDamage(attacker, defender))
-					.thenComparingInt(Group::getEffectivePower)
+				.filter(defender -> getDamage(attacker, defender, boost) != 0)
+				.max(Comparator.comparingInt((Group defender) -> getDamage(attacker, defender, boost))
+					.thenComparingInt(defender -> defender.getEffectivePower(boost))
 					.thenComparingInt(Group::getInitiative)
 				)
 				.ifPresent(defender -> {
@@ -80,44 +81,76 @@ public final class Day24 {
 				});
 		}
 
-		private int getDamage(Group attacker, Group defender) {
+		private int getDamage(Group attacker, Group defender, int boost) {
+			int damage;
 			if (defender.immuneAttackTypes.contains(attacker.attackType)) {
-				return 0;
+				damage = 0;
 			} else if (defender.weakAttackTypes.contains(attacker.attackType)) {
-				return attacker.getEffectivePower() * 2;
+				damage = attacker.getEffectivePower(boost) * 2;
 			} else {
-				return attacker.getEffectivePower();
+				damage = attacker.getEffectivePower(boost);
 			}
+			return damage;
 		}
 
-		private void attack() {
+		private void attack(int boost) {
 			Streams.concat(immuneGroups.stream(), infectionGroups.stream())
 				.filter(group -> group.target != null)
 				.sorted(Comparator.comparingInt(Group::getInitiative).reversed())
 				.forEachOrdered(group -> {
 					if (group.isAlive()) {
-						group.target.hit(getDamage(group, group.target));
+						group.target.hit(getDamage(group, group.target, boost));
 					}
 				});
 		}
 
-		public int fight() {
-			for (;;) {
-				selectTargets(immuneGroups, infectionGroups);
-				selectTargets(infectionGroups, immuneGroups);
-				attack();
+		public int getWinningUnits() {
+			if (fight(0)) {
+				return immuneGroups.stream().mapToInt(Group::getUnits).sum();
+			} else {
+				return infectionGroups.stream().mapToInt(Group::getUnits).sum();
+			}
+		}
 
-				if (immuneGroups.stream().noneMatch(Group::isAlive)) {
-					return infectionGroups.stream().mapToInt(Group::getUnits).sum();
-				} else if (infectionGroups.stream().noneMatch(Group::isAlive)) {
+		public int getWinningUnitsAfterMinBoost() {
+			for (int boost = 0;; boost++) {
+				if (fight(boost)) {
 					return immuneGroups.stream().mapToInt(Group::getUnits).sum();
+				}
+			}
+		}
+
+		private int totalUnits() {
+			return Streams.concat(immuneGroups.stream(), infectionGroups.stream())
+				.mapToInt(Group::getUnits)
+				.sum();
+		}
+
+		private boolean fight(int boost) {
+			immuneGroups.forEach(Group::reset);
+			infectionGroups.forEach(Group::reset);
+
+			for (;;) {
+				int totalBefore = totalUnits();
+				selectTargets(immuneGroups, infectionGroups, boost);
+				selectTargets(infectionGroups, immuneGroups, boost);
+				attack(boost);
+				int totalAfter = totalUnits();
+
+				if (totalBefore == totalAfter) {
+					/* it's a draw */
+					return false;
+				} if (immuneGroups.stream().noneMatch(Group::isAlive)) {
+					return false;
+				} else if (infectionGroups.stream().noneMatch(Group::isAlive)) {
+					return true;
 				}
 			}
 		}
 	}
 
 	private static final class Group {
-		public static Group parse(String line) {
+		public static Group parse(String line, boolean immune) {
 			Matcher matcher = GROUP_PATTERN.matcher(line);
 			if (!matcher.matches()) {
 				throw new IllegalArgumentException();
@@ -148,9 +181,11 @@ public final class Day24 {
 				}
 			}
 
-			return new Group(units, hitPoints, immuneAttackTypes, weakAttackTypes, attackDamage, attackType, initiative);
+			return new Group(immune, units, hitPoints, immuneAttackTypes, weakAttackTypes, attackDamage, attackType, initiative);
 		}
 
+		private final boolean immune;
+		private final int originalUnits;
 		private int units;
 		private final int hitPoints;
 		private final Set<String> immuneAttackTypes, weakAttackTypes;
@@ -159,7 +194,9 @@ public final class Day24 {
 		private final int initiative;
 		private Group targetedBy, target;
 
-		public Group(int units, int hitPoints, Set<String> immuneAttackTypes, Set<String> weakAttackTypes, int attackDamage, String attackType, int initiative) {
+		public Group(boolean immune, int units, int hitPoints, Set<String> immuneAttackTypes, Set<String> weakAttackTypes, int attackDamage, String attackType, int initiative) {
+			this.immune = immune;
+			this.originalUnits = units;
 			this.units = units;
 			this.hitPoints = hitPoints;
 			this.immuneAttackTypes = immuneAttackTypes;
@@ -169,12 +206,16 @@ public final class Day24 {
 			this.initiative = initiative;
 		}
 
+		public void reset() {
+			this.units = originalUnits;
+		}
+
 		public int getUnits() {
 			return units;
 		}
 
-		public int getEffectivePower() {
-			return units * attackDamage;
+		public int getEffectivePower(int boost) {
+			return units * (attackDamage + (immune ? boost : 0));
 		}
 
 		public int getInitiative() {
@@ -192,6 +233,8 @@ public final class Day24 {
 		@Override
 		public String toString() {
 			return MoreObjects.toStringHelper(this)
+				.add("immune", immune)
+				.add("originalUnits", originalUnits)
 				.add("units", units)
 				.add("hitPoints", hitPoints)
 				.add("immuneAttackTypes", immuneAttackTypes)
